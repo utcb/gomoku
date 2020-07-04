@@ -18,8 +18,7 @@ ol, ul {
 }
 
 .square {
-  background: #fff;
-  border: 1px solid #999;
+  border: 0px solid #fff;
   float: left;
   font-size: 24px;
   font-weight: bold;
@@ -30,11 +29,20 @@ ol, ul {
   padding: 0;
   text-align: center;
   width: 34px;
+  /* display:inline-block; */
+  background:
+    linear-gradient(#999,#999),
+    linear-gradient(#999,#999),
+    #fff;
+  background-position: center;
+  background-size: 100% 1px,1px 100%;
+  background-repeat: no-repeat;
 }
 
 .square:focus {
   outline: none;
 }
+
 
 .kbd-navigation .square:focus {
   background: #ddd;

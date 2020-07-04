@@ -23,31 +23,19 @@ function Square(props) {
       stepNumber = square.stepNumber;
       player = square.player;
   }
-  let subs = null;
+  let title = "index: " + index;
   if (player === 1 || player === 2) { // first player
       marks = player === 1 ? 'X' : 'O';
       // 是否在赢得比赛的三个点击中。标记marks旁的小字，表示第几步，红色表示成功的步骤
       if (stepNumber > 0) {
-          if (square.inWinLine) {
-              subs = (
-                  <sub className="win">{stepNumber}</sub>
-              )
-          } else {
-              subs = (
-                  <sub>{stepNumber}</sub>
-              )
-          }
+        title = title + ", step: " + stepNumber;
       }
   } else if (player !== null) { // error
       marks = 'E';
-  } else {
-      marks = (
-          <small><sub>{index}</sub></small>
-      );
   }
   return (
-      <button className="square" onClick={()=>dispatch(markOn(index))}>
-          {marks}{subs}
+      <button className="square" onClick={()=>dispatch(markOn(index))} title={title}>
+          {marks}
       </button>
       );
 }
@@ -57,10 +45,10 @@ class Board extends React.Component {
     return (
       <div className="game-board">
         <div>
-          {[0,1,2].map(row=>(
+          {Array(15).fill(null).map((v,row)=>(
             <div key={row} className="board-row">
-              {[0,1,2].map(col=>(
-                <Square key={col} index={col + row * 3} />
+              {Array(15).fill(null).map((v2, col)=>(
+                <Square key={col} index={col + row * 15} />
               ))}
             </div>
           ))}
