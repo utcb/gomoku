@@ -45,9 +45,9 @@ class Board extends React.Component {
     return (
       <div className="game-board">
         <div>
-          {Array(15).fill(null).map((v,row)=>(
+          {Array(15).fill(null).map((v,row) => (
             <div key={row} className="board-row">
-              {Array(15).fill(null).map((v2, col)=>(
+              {Array(15).fill(null).map((v2, col) => (
                 <Square key={col} index={col + row * 15} />
               ))}
             </div>
