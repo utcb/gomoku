@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import {Provider} from 'react-redux';
 import {useSelector, useDispatch } from 'react-redux';
 import { markOn, jumpTo } from './gameSlice';
 import gameStore, {getSquares, getPlayer, getWinner, getSteps, getStepNumber} from './store';
+import ioClient from 'socket.io-client';
+
+global.socket = null;
+global.socketio_server = 'https://socketio.labwayit.com';
+global.clientId = null;
 
 /**
  * Square: 知道自身的位置（props.index: [0-8]）。外部props传入状态(props.value)
@@ -96,15 +101,46 @@ function GameInfo() {
 /**
  * 一个game由两个玩家和一个Board组成
  */
-class Game extends React.Component {
-  render() {
+function Game(props) {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (global.socket !== null) {
+      // already initialized, exit
+      return;
+    }
+    global.socket = ioClient(`${global.socketio_server}/gomoku/play`, {
+      query: "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiR29tb2t1IFBsYXllciIsImFkbWluIjpmYWxzZSwidG9rZW4iOiJiYlYxdUhoZmVLdW0rbmdiRGdKNlNNZHYzUkgxTGRGWWVMSWp1ZEhLcVZBPSJ9.ODJVThBlGFXiGQnWTvMlpCSyBWchv6fggOaYJfgxyF8"
+    });
+    global.socket.on('error', err => {
+        if( err.code === 'invalid_token' && err.type === 'UnauthorizedError' && err.message === 'jwt expired' ) {
+            // Handle token expiration
+            console.log("token expired");
+        } else {
+            console.log(err);
+            alert("socket.io-client error: " + err.code + " : " + err.type + " : " + err.message);
+        }
+    });
+    global.socket.on('connect', function() {
+      console.log(global.socket.id, global.socket.io.engine.id, global.socket.json.id);
+      global.clientId = global.socket.io.engine.id;
+      global.socket.emit('join', "Player " + global.clientId + " join");
+    });
+    global.socket.on('broad_action', function(data) {
+      console.log("receive board_action message");
+      console.log(data);
+      dispatch(markOn(data));
+    });
+    global.socket.on('broad_join', function(data) {
+        console.log(data);
+    });
+  });
+
     return (
         <div className="game">
           <Board />
           <GameInfo />
         </div>
     );
-  }
 }
 
 // ========================================

@@ -22,7 +22,17 @@ export const gameSlice = createSlice({
     // https://immerjs.github.io/immer/docs/introduction。注：我们目前项目，是用公用的deep copy方法实现其中一部分的类似功能
 
     markOn: (state, action) => { // 玩家成功点击某个格子（index）
-      let index = action.payload;
+      console.log("in markOn...");
+      console.log(action);
+      let payload = action.payload;
+      let index = null;
+      let socketio = false; // triggered by socketio or not
+      if ((typeof payload) === "object") {
+        index = payload.index;
+        socketio = payload.socketio;
+      } else {
+        index = payload;
+      }
       let player = state.player;
       if (player < 1 || player > 2) { // 玩家尚未被初始化或错误
         return;
@@ -55,6 +65,12 @@ export const gameSlice = createSlice({
         state.winLine.forEach(i => { // 设置inWinLine状态
           newSquare[i].inWinLine = true;
         });
+      }
+      // send socketio action
+      if (!socketio) {
+        console.log("emit markOn action");
+        const data = {"index": index, "socketio": true, "player": player, "clientId": global.clientId};
+        global.socket.emit("action", data);
       }
     },
     jumpTo: (state, action) => {
