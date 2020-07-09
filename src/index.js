@@ -72,7 +72,7 @@ function GameInfo() {
   const winner = useSelector(getWinner);
 
   const moves = steps.map((move, step) => {
-    const desc = 'Go to move #' + move;
+    const desc = 'Go to move #' + move + " (" + (Math.floor(move / 15) + 1) + ", " + (move % 15 + 1) + ")";
     return (
       <li key={step+1}>
         <button onClick={() => dispatch(jumpTo(step+1))} className={stepNumber === step + 1 ? "win" : null}>{desc}</button>

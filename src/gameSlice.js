@@ -5,6 +5,7 @@ import { createSlice } from '@reduxjs/toolkit';
 export const gameSlice = createSlice({
   name: 'game',
   initialState: {
+    me: 0, // me and peer, who's me，不是我的话，不能点击
     player: 1, // 当前玩家，即轮到该玩家下子。缺省为1，表示第一个玩家，页面上表示为'X'。2表示第二个玩家，表示为'O'
     stepNumber: 0, // 步数，实际下子的数量。0表示尚未开始游戏，1表示下了第一个棋子
     /**
@@ -13,7 +14,7 @@ export const gameSlice = createSlice({
      *    {player: 1/2, stepNumber: 步数, index: 即array索引（冗余）, inWinLine: true/false 是否在winLine内}
      */
     history: [],
-    steps: Array(9).fill(null), // 记录至多9个步骤的九宫格index，表示每一步点击的是哪一个square
+    steps: Array(225).fill(null), // 记录至多9个步骤的九宫格index，表示每一步点击的是哪一个square
     winner: null,
     winLine: null
   },
@@ -27,11 +28,17 @@ export const gameSlice = createSlice({
       let payload = action.payload;
       let index = null;
       let socketio = false; // triggered by socketio or not
-      if ((typeof payload) === "object") {
+      if ((typeof payload) === "object") { // triggered by socketio
         index = payload.index;
         socketio = payload.socketio;
-      } else {
+      } else { // true click
         index = payload;
+        if (state.me === 0) {
+          state.me = state.player;
+        } else if (state.me !== state.player) { // 不应该me下
+          console.log("Waiting for your peer to play");
+          return;
+        }
       }
       let player = state.player;
       if (player < 1 || player > 2) { // 玩家尚未被初始化或错误
@@ -42,7 +49,7 @@ export const gameSlice = createSlice({
         return;
       }
       // 重新设置steps, history等变量值，从stepNumber开始
-      for (let i = state.stepNumber; i < 9; i++) {
+      for (let i = state.stepNumber; i < 225; i++) {
         state.steps[i] = null;
       }
       state.history = state.history.slice(0, state.stepNumber);
@@ -89,12 +96,13 @@ export const gameSlice = createSlice({
 
 export const _getSquares = state=>{
   if (state.stepNumber === 0) {
-    return Array(9).fill(null);
+    return Array(225).fill(null);
   }
   return state.history[state.stepNumber - 1];
 };
 
 function calculateWinner(squares) {
+  /*
   const lines = [
     [0, 1, 2],
     [3, 4, 5],
@@ -111,7 +119,9 @@ function calculateWinner(squares) {
       return [a, b, c];
     }
   }
+  */
   return null;
+
 }
 
 // 输出 actions
