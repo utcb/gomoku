@@ -18,6 +18,7 @@ function Square(props) {
   // useDispatch, useSelector，都是react hook，只能在function类型的组件中使用
   const dispatch = useDispatch();
   const squares = useSelector(getSquares);
+  const currentStepNumber = useSelector(getStepNumber);
   const index = props.index;
 
   let marks = null;
@@ -34,6 +35,10 @@ function Square(props) {
       // 是否在赢得比赛的三个点击中。标记marks旁的小字，表示第几步，红色表示成功的步骤
       if (stepNumber > 0) {
         title = title + ", step: " + stepNumber;
+      }
+      // 当前步骤标红
+      if (currentStepNumber === stepNumber) {
+        marks = (<font color="red">{marks}</font>);
       }
   } else if (player !== null) { // error
       marks = 'E';
