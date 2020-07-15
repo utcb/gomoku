@@ -6,6 +6,7 @@ import {useSelector, useDispatch } from 'react-redux';
 import { markOn, jumpTo } from './gameSlice';
 import gameStore, {getSquares, getPlayer, getWinner, getSteps, getStepNumber} from './store';
 import ioClient from 'socket.io-client';
+import { useBeforeunload } from 'react-beforeunload';
 
 global.socket = null;
 global.socketio_server = 'https://socketio.labwayit.com';
@@ -107,6 +108,7 @@ function GameInfo() {
  * 一个game由两个玩家和一个Board组成
  */
 function Game(props) {
+  useBeforeunload(event => event.preventDefault());
   const dispatch = useDispatch();
   useEffect(() => {
     if (global.socket !== null) {

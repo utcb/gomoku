@@ -8711,6 +8711,14 @@ react-app-polyfill@^1.0.6:
     regenerator-runtime "^0.13.3"
     whatwg-fetch "^3.0.0"
 
+react-beforeunload@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.npm.taobao.org/react-beforeunload/download/react-beforeunload-2.2.2.tgz#35a99311284ecbc497a269347a5a9bb0ae21dffd"
+  integrity sha1-NamTEShOy8SXomk0elqbsK4h3/0=
+  dependencies:
+    prop-types "^15.7.2"
+    use-latest "^1.1.0"
+
 react-dev-utils@^10.2.1:
   version "10.2.1"
   resolved "https://registry.npm.taobao.org/react-dev-utils/download/react-dev-utils-10.2.1.tgz?cache=0&sync_timestamp=1584750909878&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Freact-dev-utils%2Fdownload%2Freact-dev-utils-10.2.1.tgz#f6de325ae25fa4d546d09df4bb1befdc6dd19c19"
@@ -10501,6 +10509,18 @@ url@^0.11.0:
   dependencies:
     punycode "1.3.2"
     querystring "0.2.0"
+
+use-isomorphic-layout-effect@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.npm.taobao.org/use-isomorphic-layout-effect/download/use-isomorphic-layout-effect-1.0.0.tgz#f56b4ed633e1c21cd9fc76fe249002a1c28989fb"
+  integrity sha1-9WtO1jPhwhzZ/Hb+JJACocKJifs=
+
+use-latest@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.npm.taobao.org/use-latest/download/use-latest-1.1.0.tgz#7bf9684555869c3f5f37e10d0884c8accf4d3aa6"
+  integrity sha1-e/loRVWGnD9fN+ENCITIrM9NOqY=
+  dependencies:
+    use-isomorphic-layout-effect "^1.0.0"
 
 use@^3.1.0:
   version "3.1.1"
