@@ -26,9 +26,11 @@ function Square(props) {
   let player = null;
   let stepNumber = 0;
   let square = squares ? squares[index] : null;
+  let inWinLine = false;
   if (square) {
       stepNumber = square.stepNumber;
       player = square.player;
+      inWinLine = square.inWinLine;
   }
   let title = "index: " + index;
   if (player === 1 || player === 2) { // first player
@@ -38,7 +40,7 @@ function Square(props) {
         title = title + ", step: " + stepNumber;
       }
       // 当前步骤标红
-      if (currentStepNumber === stepNumber) {
+      if (currentStepNumber === stepNumber || inWinLine) {
         marks = (<font color="red">{marks}</font>);
       }
   } else if (player !== null) { // error

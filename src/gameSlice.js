@@ -54,7 +54,8 @@ export const gameSlice = createSlice({
       }
       state.history = state.history.slice(0, state.stepNumber);
       state.steps[state.stepNumber] = index
-      let newSquare = _getSquares(state).slice(0);
+      // let newSquare = _getSquares(state).slice(0);
+      let newSquare = _getSquares(state).map(sq => (sq === null ? null : {...sq}));
       newSquare[index] = {
           index: index,
           stepNumber: state.stepNumber + 1, // 第几步，从1开始
@@ -63,7 +64,7 @@ export const gameSlice = createSlice({
       };
       state.history.push(newSquare);
       state.stepNumber += 1; // 步数++
-      state.winLine = calculateWinner(_getSquares(state));
+      state.winLine = calculateWinner(_getSquares(state), state.stepNumber, state.steps);
       if (state.winLine === null) { // 尚未分出输赢，继续
         state.player = (state.player === 1 ? 2 : 1); // 交换玩家
       } else { // 结束
@@ -85,7 +86,7 @@ export const gameSlice = createSlice({
       state.stepNumber = step;
       state.player = (step % 2) + 1;
       state.winner = null;
-      state.winLine = calculateWinner(_getSquares(state));
+      state.winLine = calculateWinner(_getSquares(state), state.stepNumber, state.steps);
       if (state.winLine != null) {
         state.player = (step % 2);
         state.winner = state.player;
@@ -101,27 +102,102 @@ export const _getSquares = state=>{
   return state.history[state.stepNumber - 1];
 };
 
-function calculateWinner(squares) {
-  /*
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6]
-  ];
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a] && squares[b] && squares[c] && squares[a].player &&  squares[a].player === squares[b].player && squares[a].player === squares[c].player) {
-      return [a, b, c];
-    }
+function calculateWinner(squares, stepNumber, steps) {
+  if (stepNumber <= 8) { // at least 9 steps to win game
+    return null;
   }
-  */
-  return null;
+  let ls = steps[stepNumber - 1]; // square index of last step
+  let lsx = ls % 15; // 笛卡尔坐标（左上角为[0, 0]）的x轴
+  let lsy = Math.floor(ls / 15); // y轴
+  let mark = squares[ls].player; // mark (1/2 -> X/O)
+  let leftborder = ls - lsx; // 左边界index
+  let rightborder = leftborder + 14; // 右边界index
 
+  let consecutive = 1; // 连续的（排成一排的）数量，当前算做1
+  let winLine = [ls]; // winLine包含的棋子index，当前肯定属于其中
+  // 横向
+  let i = 1;
+  while (((ls - i) >= leftborder) && squares[ls - i] !== null && squares[ls - i].player === mark ) {
+    winLine.push(ls - i);
+    consecutive++;
+    i++;
+  }
+  if (consecutive >= 5) {
+    return winLine;
+  }
+  i = 1;
+  while (((ls + i) <= rightborder) && squares[ls + i] !== null && squares[ls + i].player === mark ) {
+    winLine.push(ls + i);
+    consecutive++;
+    i++;
+  }
+  if (consecutive >= 5) {
+    return winLine;
+  }
+  // 纵向
+  consecutive = 1;
+  winLine = [ls];
+  i = 1;
+  while (((ls - i * 15) >= 0) && squares[ls - i * 15] !== null && squares[ls - i * 15].player === mark ) {
+    winLine.push(ls - i * 15);
+    consecutive++;
+    i++;
+  }
+  if (consecutive >= 5) {
+    return winLine;
+  }
+  i = 1;
+  while (((ls + i * 15) < 225) && squares[ls + i * 15] !== null && squares[ls + i * 15].player === mark ) {
+    winLine.push(ls + i * 15);
+    consecutive++;
+    i++;
+  }
+  if (consecutive >= 5) {
+    return winLine;
+  }
+  // '\'方向
+  consecutive = 1;
+  winLine = [ls];
+  i = 1;
+  while (((ls - i * 16) >= 0) && ((lsx - i) >= 0) && squares[ls - i * 16] !== null && squares[ls - i * 16].player === mark ) {
+    winLine.push(ls - i * 16);
+    consecutive++;
+    i++;
+  }
+  if (consecutive >= 5) {
+    return winLine;
+  }
+  i = 1;
+  while (((ls + i * 16) < 225) && ((lsx + i) <= 14) && squares[ls + i * 16] !== null && squares[ls + i * 16].player === mark ) {
+    winLine.push(ls + i * 16);
+    consecutive++;
+    i++;
+  }
+  if (consecutive >= 5) {
+    return winLine;
+  }
+  // '/'方向
+  consecutive = 1;
+  winLine = [ls];
+  i = 1;
+  while (((ls - i * 14) >= 0) && ((lsx + i) <= 14) && squares[ls - i * 14] !== null && squares[ls - i * 14].player === mark ) {
+    winLine.push(ls - i * 14);
+    consecutive++;
+    i++;
+  }
+  if (consecutive >= 5) {
+    return winLine;
+  }
+  i = 1;
+  while (((ls + i * 14) < 225) && ((lsx - i) >= 0) && squares[ls + i * 14] !== null && squares[ls + i * 14].player === mark ) {
+    winLine.push(ls + i * 14);
+    consecutive++;
+    i++;
+  }
+  if (consecutive >= 5) {
+    return winLine;
+  }
+  return null;
 }
 
 // 输出 actions
