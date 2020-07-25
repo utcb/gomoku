@@ -14,6 +14,7 @@ import * as jQuery from 'jquery';
 global.socket = null;
 global.socketio_server = 'https://socketio.labwayit.com';
 global.clientId = null;
+global.peer_join = false; // peer join or not
 
 /**
  * Square: 知道自身的位置（props.index: [0-8]）。外部props传入状态(props.value)
@@ -169,7 +170,7 @@ function Game(props) {
       console.log(global.socket.id, global.socket.io.engine.id, global.socket.json.id);
       global.clientId = global.socket.io.engine.id;
       appendMessage("我进来了");
-      global.socket.emit('join', "Player " + global.clientId + " join");
+      global.socket.emit('join', "玩家 " + global.clientId + " 加入棋局");
     });
     global.socket.on('broad_action', function(data) {
       console.log("receive board_action message");
@@ -178,10 +179,16 @@ function Game(props) {
       dispatch(markOn(data));
     });
     global.socket.on('broad_join', function(data) {
-      appendMessage("Peer加入棋局");
+      if (global.peer_join) {
+        return;
+      }
+      global.peer_join = true;
+      global.socket.emit('join', "Peer欢迎你加入棋局");
+      appendMessage(data);
       console.log(data);
     });
     global.socket.on('leave', function(data) {
+      global.peer_join = false;
       appendMessage("Peer离开了棋局");
       console.log(data);
     });
