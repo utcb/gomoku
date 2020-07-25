@@ -181,6 +181,10 @@ function Game(props) {
       appendMessage("Peer加入棋局");
       console.log(data);
     });
+    global.socket.on('leave', function(data) {
+      appendMessage("Peer离开了棋局");
+      console.log(data);
+    });
   });
 
     return (
