@@ -7,6 +7,9 @@ import { markOn, jumpTo } from './gameSlice';
 import gameStore, {getSquares, getPlayer, getWinner, getSteps, getStepNumber} from './store';
 import ioClient from 'socket.io-client';
 import { useBeforeunload } from 'react-beforeunload';
+import { Container, Row, Col, Modal, Button } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import * as jQuery from 'jquery';
 
 global.socket = null;
 global.socketio_server = 'https://socketio.labwayit.com';
@@ -83,7 +86,7 @@ function GameInfo() {
     const desc = 'Go to move #' + move + " (" + (Math.floor(move / 15) + 1) + ", " + (move % 15 + 1) + ")";
     return (
       <li key={step+1}>
-        <button onClick={() => dispatch(jumpTo(step+1))} className={stepNumber === step + 1 ? "win" : null}>{desc}</button>
+        <Button onClick={() => openModal(step+1)} variant={stepNumber === step + 1 ? "success" : "outline-info"} size="sm">{desc}</Button>
       </li>
     );
   });
@@ -94,16 +97,49 @@ function GameInfo() {
   } else {
     status = "Next player: " + (xIsNext ? "X" : "O");
   }
+
+  const [modalIsOpen,setIsOpen] = useState(false);
+  function openModal(step) {
+    dispatch(jumpTo(step));
+    setIsOpen(true);
+  }
+  function afterOpenModal() {
+  }
+  function closeModal(yes) {
+    if (!yes) {
+      dispatch(jumpTo(steps.length));
+    }
+    setIsOpen(false);
+  }
+
   return (
     <div className="game-info">
+      <Modal
+          show={modalIsOpen}
+          backdrop="static"
+          centered
+      >
+        <Modal.Header>
+          <Modal.Title>悔棋</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>你确定要撤回到这一步吗？</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => closeModal(true)}>确定一定以及肯定</Button>
+          <Button variant="primary" onClick={() => closeModal(false)}>嗯，算了吧，再想想</Button>
+        </Modal.Footer>
+      </Modal>
         <div>{status}</div>
         <ol>
           <li key={0}>
-            <button onClick={() => dispatch(jumpTo(0))}>Go to game start</button>
+            <Button onClick={() => openModal(0)} size="sm" variant="outline-info">Go to game start</Button>
           </li>
           {moves}</ol>
     </div>
   );
+}
+
+function appendMessage(msg) {
+  jQuery("#socketmessage").append(msg + "<br/>");
 }
 
 /**
@@ -132,23 +168,35 @@ function Game(props) {
     global.socket.on('connect', function() {
       console.log(global.socket.id, global.socket.io.engine.id, global.socket.json.id);
       global.clientId = global.socket.io.engine.id;
+      appendMessage("我进来了");
       global.socket.emit('join', "Player " + global.clientId + " join");
     });
     global.socket.on('broad_action', function(data) {
       console.log("receive board_action message");
       console.log(data);
+      appendMessage("Peer下了一步棋");
       dispatch(markOn(data));
     });
     global.socket.on('broad_join', function(data) {
-        console.log(data);
+      appendMessage("Peer加入棋局");
+      console.log(data);
     });
   });
 
     return (
-        <div className="game">
+      <Row>
+        <Col sm={12} md={8} lg={6} xl={5}>
           <Board />
+        </Col>
+        <Col lg={3} xl={3}>
           <GameInfo />
-        </div>
+        </Col>
+        <Col>
+          messages:<br/>
+          <div id="socketmessage"></div>
+        </Col>
+      </Row>
+        
     );
 }
 
@@ -157,7 +205,9 @@ function Game(props) {
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={gameStore}>
-      <Game />
+      <Container fluid>
+        <Game />
+      </Container>
     </Provider>
   </React.StrictMode>
   , document.getElementById("root"));
