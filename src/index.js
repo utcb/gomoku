@@ -7,12 +7,13 @@ import { markOn, jumpTo } from './gameSlice';
 import gameStore, {getSquares, getPlayer, getWinner, getSteps, getStepNumber} from './store';
 import ioClient from 'socket.io-client';
 import { useBeforeunload } from 'react-beforeunload';
-import { Container, Row, Col, Modal, Button } from 'react-bootstrap';
+import { Container, Row, Col, Modal, Button, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import * as jQuery from 'jquery';
 
 global.socket = null;
 global.socketio_server = 'https://socketio.labwayit.com';
+// global.socketio_server = 'http://localhost:3479';
 global.clientId = null;
 global.peer_join = false; // peer join or not
 
@@ -99,16 +100,26 @@ function GameInfo() {
     status = "Next player: " + (xIsNext ? "X" : "O");
   }
 
-  const [modalIsOpen,setIsOpen] = useState(false);
+  const [modalIsOpen, setIsOpen] = useState(false);
   function openModal(step) {
+    if (global.socket !== null) {
+      global.socket.emit('tryjump', step);
+    }
     dispatch(jumpTo(step));
     setIsOpen(true);
   }
   function afterOpenModal() {
   }
   function closeModal(yes) {
-    if (!yes) {
+    if (!yes) { // cancel
       dispatch(jumpTo(steps.length));
+      if (global.socket !== null) {
+        global.socket.emit('canceljump');
+      }
+    } else {
+      if (global.socket !== null) {
+        global.socket.emit('jumpTo', stepNumber);
+      }
     }
     setIsOpen(false);
   }
@@ -149,6 +160,7 @@ function appendMessage(msg) {
 function Game(props) {
   useBeforeunload(event => event.preventDefault());
   const dispatch = useDispatch();
+  const [jumpAlertShow, showJumpAlert] = useState(false);
   useEffect(() => {
     if (global.socket !== null) {
       // already initialized, exit
@@ -168,8 +180,12 @@ function Game(props) {
     });
     global.socket.on('connect', function() {
       console.log(global.socket.id, global.socket.io.engine.id, global.socket.json.id);
+      if (global.clientId === null ) {
+        appendMessage("我进来了");
+      } else {
+        appendMessage("我又进来了");
+      }
       global.clientId = global.socket.io.engine.id;
-      appendMessage("我进来了");
       global.socket.emit('join', "玩家 " + global.clientId + " 加入棋局");
     });
     global.socket.on('broad_action', function(data) {
@@ -183,7 +199,12 @@ function Game(props) {
         return;
       }
       global.peer_join = true;
-      global.socket.emit('join', "Peer欢迎你加入棋局");
+      global.socket.emit('welcome', "Peer欢迎你加入棋局");
+      appendMessage(data);
+      console.log(data);
+    });
+    global.socket.on('welcome', function(data) {
+      global.peer_join = true;
       appendMessage(data);
       console.log(data);
     });
@@ -191,6 +212,22 @@ function Game(props) {
       global.peer_join = false;
       appendMessage("Peer离开了棋局");
       console.log(data);
+    });
+    global.socket.on("tryjump", function(data) {
+      console.log(data);
+      showJumpAlert(true);
+      appendMessage("对方准备悔棋...");
+    });
+    global.socket.on("canceljump", function() {
+      console.log('canceljump');
+      showJumpAlert(false);
+      appendMessage("对方取消悔棋...");
+    });
+    global.socket.on("jumpTo", function(data) {
+      console.log('jumpTo: ' + data);
+      showJumpAlert(false);
+      appendMessage("对方决定悔棋到第<" + (data + 1) + ">步");
+      dispatch(jumpTo(data));
     });
   });
 
@@ -201,6 +238,9 @@ function Game(props) {
         </Col>
         <Col lg={3} xl={3}>
           <GameInfo />
+          <Modal variant="warning" show={jumpAlertShow} keyboard="false" backdrop="static" centered size="xl">
+            对方正在悔棋ing......
+          </Modal>
         </Col>
         <Col>
           messages:<br/>
